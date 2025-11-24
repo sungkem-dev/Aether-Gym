@@ -1,7 +1,8 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 import {
   LineChart,
   Line,
@@ -14,6 +15,21 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import { toast } from "@/hooks/use-toast";
+
+interface AddedFood {
+  id: number;
+  name: string;
+  image: string;
+  calories: number;
+  mealTime: string;
+  protein: number;
+  fat: number;
+  carbs: number;
+  fiber: number;
+  sugar: number;
+  addedAt: string;
+}
 
 const dailyCaloriesData = [
   { day: "Monday", calories: 1920 },
@@ -33,6 +49,26 @@ const weeklyMacrosData = [
 
 const Statistics = () => {
   const navigate = useNavigate();
+  const [addedFoods, setAddedFoods] = useState<AddedFood[]>([]);
+
+  useEffect(() => {
+    // Load added foods from localStorage
+    const storedFoods = localStorage.getItem("addedFoods");
+    if (storedFoods) {
+      setAddedFoods(JSON.parse(storedFoods));
+    }
+  }, []);
+
+  const handleDeleteFood = (index: number) => {
+    const updatedFoods = addedFoods.filter((_, i) => i !== index);
+    setAddedFoods(updatedFoods);
+    localStorage.setItem("addedFoods", JSON.stringify(updatedFoods));
+    
+    toast({
+      title: "Food Removed",
+      description: "The food item has been removed from your log.",
+    });
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -50,6 +86,49 @@ const Statistics = () => {
         <p className="text-muted-foreground mb-8">Track your nutrition progress over time</p>
 
         <div className="space-y-8">
+          {/* Added Foods Section */}
+          {addedFoods.length > 0 && (
+            <Card className="p-6 animate-fade-in">
+              <h2 className="text-xl font-bold mb-4">Your Added Meals</h2>
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {addedFoods.map((food, index) => (
+                  <div
+                    key={index}
+                    className="relative bg-card border border-border rounded-lg overflow-hidden hover:shadow-glow transition-all"
+                  >
+                    <img
+                      src={food.image}
+                      alt={food.name}
+                      className="w-full h-32 object-cover"
+                    />
+                    <div className="p-4">
+                      <h3 className="font-semibold mb-1">{food.name}</h3>
+                      <p className="text-sm text-muted-foreground capitalize mb-2">
+                        {food.mealTime}
+                      </p>
+                      <div className="flex justify-between items-center">
+                        <p className="text-lg font-bold text-primary">
+                          {food.calories} kcal
+                        </p>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeleteFood(index)}
+                          className="h-8 w-8 p-0 hover:bg-destructive/10 hover:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <div className="mt-2 text-xs text-muted-foreground">
+                        P: {food.protein}g • C: {food.carbs}g • F: {food.fat}g
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )}
+
           {/* Daily Calories Chart */}
           <Card className="p-6 animate-fade-in">
             <h2 className="text-xl font-bold mb-6">Daily Calories - Last 7 Days</h2>

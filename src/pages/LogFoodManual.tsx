@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { FoodDetailDialog } from "@/components/FoodDetailDialog";
+import { toast } from "@/hooks/use-toast";
 import chickenSalad from "@/assets/food-chicken-salad.jpg";
 import oatmeal from "@/assets/food-oatmeal.jpg";
 import proteinShake from "@/assets/food-protein-shake.jpg";
@@ -109,6 +110,33 @@ const LogFoodManual = () => {
     setDialogOpen(true);
   };
 
+  const handleAddFood = (food: FoodItem) => {
+    // Get existing foods from localStorage
+    const existingFoods = localStorage.getItem("addedFoods");
+    const foods = existingFoods ? JSON.parse(existingFoods) : [];
+    
+    // Add new food with timestamp
+    const newFood = {
+      ...food,
+      addedAt: new Date().toISOString(),
+    };
+    foods.push(newFood);
+    
+    // Save back to localStorage
+    localStorage.setItem("addedFoods", JSON.stringify(foods));
+    
+    // Show success toast
+    toast({
+      title: "Food Added!",
+      description: `${food.name} has been added to your meal log.`,
+    });
+    
+    // Navigate to statistics
+    setTimeout(() => {
+      navigate("/statistics");
+    }, 500);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-card">
@@ -156,6 +184,7 @@ const LogFoodManual = () => {
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         food={selectedFood}
+        onAddFood={handleAddFood}
       />
     </div>
   );
