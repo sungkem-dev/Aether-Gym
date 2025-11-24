@@ -4,9 +4,11 @@ import { Card } from "@/components/ui/card";
 import { LogOut, Upload, TrendingUp, Apple, Activity } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { UploadMealDialog } from "@/components/UploadMealDialog";
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [stats] = useState({
     caloriesConsumed: 1850,
     caloriesTarget: 2200,
@@ -81,15 +83,27 @@ const Dashboard = () => {
         <Card className="p-6 mb-8 animate-slide-up">
           <h2 className="text-xl font-bold mb-4">Quick Actions</h2>
           <div className="grid md:grid-cols-3 gap-4">
-            <Button variant="outline" className="h-auto py-4 flex-col gap-2">
+            <Button 
+              variant="outline" 
+              className="h-auto py-4 flex-col gap-2"
+              onClick={() => setUploadDialogOpen(true)}
+            >
               <Upload className="h-6 w-6" />
               <span>Upload Meal Photo</span>
             </Button>
-            <Button variant="outline" className="h-auto py-4 flex-col gap-2">
+            <Button 
+              variant="outline" 
+              className="h-auto py-4 flex-col gap-2"
+              onClick={() => navigate("/log-food-manual")}
+            >
               <Apple className="h-6 w-6" />
               <span>Log Food Manually</span>
             </Button>
-            <Button variant="outline" className="h-auto py-4 flex-col gap-2">
+            <Button 
+              variant="outline" 
+              className="h-auto py-4 flex-col gap-2"
+              onClick={() => navigate("/statistics")}
+            >
               <TrendingUp className="h-6 w-6" />
               <span>View Statistics</span>
             </Button>
@@ -132,6 +146,8 @@ const Dashboard = () => {
           </div>
         </Card>
       </div>
+
+      <UploadMealDialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen} />
     </div>
   );
 };
