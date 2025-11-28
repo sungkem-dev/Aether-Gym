@@ -3,8 +3,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Upload, X } from "lucide-react";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 interface UploadMealDialogProps {
   open: boolean;
@@ -14,7 +16,9 @@ interface UploadMealDialogProps {
 export const UploadMealDialog = ({ open, onOpenChange }: UploadMealDialogProps) => {
   const [preview, setPreview] = useState<string | null>(null);
   const [foodName, setFoodName] = useState("");
+  const [mealTime, setMealTime] = useState<string>("");
   const [isDragging, setIsDragging] = useState(false);
+  const navigate = useNavigate();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -45,10 +49,33 @@ export const UploadMealDialog = ({ open, onOpenChange }: UploadMealDialogProps) 
       toast.error("Please upload a photo first");
       return;
     }
-    toast.success("Meal photo uploaded successfully!");
+
+    // Generate random nutrition data for uploaded meal
+    const newFood = {
+      id: Date.now(),
+      name: foodName || "Uploaded Meal",
+      image: preview,
+      calories: Math.floor(Math.random() * 400) + 200,
+      mealTime: mealTime || "Snack",
+      protein: Math.floor(Math.random() * 30) + 10,
+      fat: Math.floor(Math.random() * 20) + 5,
+      carbs: Math.floor(Math.random() * 50) + 20,
+      fiber: Math.floor(Math.random() * 8) + 2,
+      sugar: Math.floor(Math.random() * 10) + 2,
+      timestamp: new Date().toISOString(),
+    };
+
+    // Save to localStorage
+    const existingFoods = JSON.parse(localStorage.getItem("addedFoods") || "[]");
+    existingFoods.push(newFood);
+    localStorage.setItem("addedFoods", JSON.stringify(existingFoods));
+
+    toast.success("Meal photo uploaded and saved to statistics!");
     setPreview(null);
     setFoodName("");
+    setMealTime("");
     onOpenChange(false);
+    navigate("/statistics");
   };
 
   const clearPreview = () => {
@@ -97,7 +124,7 @@ export const UploadMealDialog = ({ open, onOpenChange }: UploadMealDialogProps) 
               <img
                 src={preview}
                 alt="Meal preview"
-                className="w-full h-64 object-cover rounded-lg"
+                className="w-full h-48 object-cover rounded-lg"
               />
               <Button
                 variant="destructive"
@@ -111,7 +138,7 @@ export const UploadMealDialog = ({ open, onOpenChange }: UploadMealDialogProps) 
           )}
 
           <div>
-            <Label htmlFor="food-name">Food Name (Optional)</Label>
+            <Label htmlFor="food-name">Food Name</Label>
             <Input
               id="food-name"
               placeholder="e.g., Grilled Chicken Salad"
@@ -120,8 +147,23 @@ export const UploadMealDialog = ({ open, onOpenChange }: UploadMealDialogProps) 
             />
           </div>
 
-          <Button onClick={handleSubmit} className="w-full">
-            Submit
+          <div>
+            <Label htmlFor="meal-time">Meal Time</Label>
+            <Select value={mealTime} onValueChange={setMealTime}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select meal time" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Breakfast">Breakfast</SelectItem>
+                <SelectItem value="Lunch">Lunch</SelectItem>
+                <SelectItem value="Dinner">Dinner</SelectItem>
+                <SelectItem value="Snack">Snack</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <Button onClick={handleSubmit} className="w-full" variant="hero">
+            Save to Statistics
           </Button>
         </div>
       </DialogContent>
