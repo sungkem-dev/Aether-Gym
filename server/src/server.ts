@@ -23,6 +23,12 @@ import paymentRoutes from './routes/payment.routes.js';
 // ── App initialization ────────────────────────────────────────────────────────
 const app = express();
 
+// Request logging middleware to debug routing and 404 issues in production
+app.use((req, res, next) => {
+  console.log(`[Incoming Request] ${req.method} ${req.originalUrl || req.url}`);
+  next();
+});
+
 // ─── Middlewares ──────────────────────────────────────────────────────────────
 
 /**
