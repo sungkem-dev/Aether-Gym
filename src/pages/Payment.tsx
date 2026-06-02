@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuthContext } from "@/contexts/AuthContext";
+import { apiFetch } from "@/lib/api";
 
 // ─── Plan definitions — must match server/src/services/midtrans.service.ts ──
 const PLANS = [
@@ -113,7 +114,7 @@ const Payment = () => {
 
     try {
       // Call backend to get Midtrans Snap token
-      const res = await fetch("/api/payment/checkout", {
+      const res = await apiFetch("/api/payment/checkout", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

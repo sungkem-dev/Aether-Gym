@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { FoodDetailDialog } from "@/components/FoodDetailDialog";
 import { toast } from "sonner";
 import { useAuthContext } from "@/contexts/AuthContext";
+import { apiFetch } from "@/lib/api";
 
 // Local images for the curated master-food card display
 import chickenSalad from "@/assets/food-chicken-salad.jpg";
@@ -77,7 +78,7 @@ const LogFoodManual = () => {
     setSubmitting(true);
 
     try {
-      const response = await fetch("/api/food/logs", {
+      const response = await apiFetch("/api/food/logs", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

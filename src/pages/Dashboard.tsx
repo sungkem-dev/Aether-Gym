@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { UploadMealDialog } from "@/components/UploadMealDialog";
 import { useAuth } from "@/hooks/useAuth";
+import { apiFetch } from "@/lib/api";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -77,10 +78,10 @@ const Dashboard = () => {
     setLoadingStats(true);
     try {
       const [analyticsRes, statusRes] = await Promise.all([
-        fetch("/api/diet/analytics?period=daily", {
+        apiFetch("/api/diet/analytics?period=daily", {
           headers: { Authorization: `Bearer ${accessToken}` },
         }),
-        fetch("/api/payment/status", {
+        apiFetch("/api/payment/status", {
           headers: { Authorization: `Bearer ${accessToken}` },
         }),
       ]);

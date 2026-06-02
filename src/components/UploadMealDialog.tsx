@@ -11,6 +11,7 @@ import {
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { apiFetch } from "@/lib/api";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -157,7 +158,8 @@ export const UploadMealDialog = ({ open, onOpenChange, onSuccess }: UploadMealDi
       // This ensures the frontend is always in control.
       formData.append("auto_save", "false");
 
-      const response = await fetch("/api/food/scan", {
+      // Call the external backend parsing pipeline via our proxy
+      const response = await apiFetch("/api/food/scan", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -196,7 +198,7 @@ export const UploadMealDialog = ({ open, onOpenChange, onSuccess }: UploadMealDi
     if (!accessToken) return;
 
     try {
-      const res = await fetch("/api/food/logs", {
+      const res = await apiFetch("/api/food/logs", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

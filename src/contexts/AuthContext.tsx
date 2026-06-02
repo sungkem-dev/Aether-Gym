@@ -25,6 +25,7 @@ import {
 } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabaseClient";
+import { apiFetch } from "@/lib/api";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -77,7 +78,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const fetchMembershipStatus = useCallback(async (token: string): Promise<MembershipStatus | null> => {
     setMembershipLoading(true);
     try {
-      const res = await fetch("/api/payment/status", {
+      const res = await apiFetch("/api/payment/status", {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
