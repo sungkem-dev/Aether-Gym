@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Navbar } from "@/components/Navbar";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowRight, Activity, Target, TrendingUp, Heart, Users, Award, Zap, Check, MapPin, Phone, Mail, Clock } from "lucide-react";
+import { ArrowRight, Activity, Target, TrendingUp, Heart, Users, Award, Zap, MapPin, Phone, Mail, Clock } from "lucide-react";
 import { useState, useRef } from "react";
 import { toast } from "sonner";
 import { motion, useScroll, useTransform, useInView } from "framer-motion";
@@ -67,48 +67,6 @@ const Index = () => {
     setFormData({ name: "", email: "", message: "" });
   };
 
-  const plans = [
-    {
-      name: "Basic",
-      price: "299,000",
-      period: "month",
-      features: [
-        "Access to gym facilities",
-        "Basic nutrition tracking",
-        "Community support",
-        "Mobile app access",
-      ],
-      popular: false,
-    },
-    {
-      name: "Pro",
-      price: "499,000",
-      period: "month",
-      features: [
-        "Everything in Basic",
-        "AI meal recommendations",
-        "Advanced statistics & charts",
-        "Food photo upload",
-        "Priority support",
-        "Personal trainer consultations",
-      ],
-      popular: true,
-    },
-    {
-      name: "Annual",
-      price: "4,999,000",
-      period: "year",
-      features: [
-        "Everything in Pro",
-        "2 months free",
-        "Exclusive workshops",
-        "Premium meal plans",
-        "Body composition analysis",
-        "Lifetime member benefits",
-      ],
-      popular: false,
-    },
-  ];
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
@@ -180,11 +138,11 @@ const Index = () => {
                   <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
-              <a href="#pricing">
+              <Link to="/pricing">
                 <Button size="lg" variant="outline">
                   View Pricing
                 </Button>
-              </a>
+              </Link>
             </motion.div>
           </motion.div>
         </div>
@@ -347,92 +305,38 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Pricing Section */}
-      <section id="pricing" className="py-20 bg-gradient-to-b from-muted/20 to-background relative overflow-hidden">
+      {/* Pricing Teaser — links to the standalone /pricing page */}
+      <section className="py-16 bg-gradient-to-b from-muted/20 to-background relative overflow-hidden">
         <motion.div
           className="absolute right-0 bottom-0 w-80 h-80 rounded-full bg-primary/5 blur-3xl"
           animate={{ scale: [1, 1.3, 1] }}
           transition={{ duration: 8, repeat: Infinity }}
         />
         <div className="container mx-auto px-4 relative z-10">
-          <div className="max-w-6xl mx-auto">
-            <AnimatedSection>
-              <h2 className="text-5xl font-bold mb-6 text-center bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                Choose Your Plan
+          <AnimatedSection>
+            <div className="max-w-2xl mx-auto text-center">
+              <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                Simple, Transparent Pricing
               </h2>
-              <p className="text-xl text-center text-muted-foreground mb-12">
-                Select the perfect membership plan for your fitness journey
+              <p className="text-lg text-muted-foreground mb-8">
+                Plans starting from <strong className="text-foreground">Rp 299.000/month</strong>. No hidden fees.
+                Cancel anytime.
               </p>
-            </AnimatedSection>
-
-            <div className="grid md:grid-cols-3 gap-8">
-              {plans.map((plan, index) => (
-                <ParallaxCard
-                  key={plan.name}
-                  delay={index * 0.15}
-                  className={`relative p-8 rounded-xl border transition-all hover:shadow-2xl ${
-                    plan.popular
-                      ? "border-primary bg-gradient-to-b from-primary/5 to-secondary/5 scale-105"
-                      : "border-border bg-card"
-                  }`}
-                >
-                  {plan.popular && (
-                    <motion.div 
-                      className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-primary to-secondary text-primary-foreground px-4 py-1 rounded-full text-sm font-semibold"
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ delay: 0.5, type: "spring" }}
-                    >
-                      Most Popular
-                    </motion.div>
-                  )}
-                  
-                  <div className="text-center mb-6">
-                    <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
-                    <div className="flex items-baseline justify-center gap-1">
-                      <span className="text-sm text-muted-foreground">Rp</span>
-                      <span className="text-4xl font-bold">{plan.price}</span>
-                      <span className="text-muted-foreground">/{plan.period}</span>
-                    </div>
-                  </div>
-
-                  <ul className="space-y-3 mb-8">
-                    {plan.features.map((feature, i) => (
-                      <motion.li 
-                        key={feature} 
-                        className="flex items-start gap-2"
-                        initial={{ opacity: 0, x: -10 }}
-                        whileInView={{ opacity: 1, x: 0 }}
-                        transition={{ delay: i * 0.1 }}
-                        viewport={{ once: true }}
-                      >
-                        <Check className="h-5 w-5 text-secondary flex-shrink-0 mt-0.5" />
-                        <span className="text-muted-foreground">{feature}</span>
-                      </motion.li>
-                    ))}
-                  </ul>
-
-                  <Link to="/register" className="block">
-                    <Button
-                      variant={plan.popular ? "hero" : "outline"}
-                      className="w-full"
-                    >
-                      Get Started
-                    </Button>
-                  </Link>
-                </ParallaxCard>
-              ))}
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link to="/pricing">
+                  <Button size="lg" variant="hero" className="group">
+                    View All Plans
+                    <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                </Link>
+                <Link to="/register">
+                  <Button size="lg" variant="outline">
+                    Start Free Today
+                  </Button>
+                </Link>
+              </div>
             </div>
-
-            <AnimatedSection className="mt-16 text-center">
-              <p className="text-muted-foreground mb-4">
-                All plans include access to our state-of-the-art facilities and equipment
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Need a custom plan for your organization? <a href="#contact" className="text-primary hover:underline">Contact us</a>
-              </p>
-            </AnimatedSection>
-          </div>
+          </AnimatedSection>
         </div>
       </section>
 

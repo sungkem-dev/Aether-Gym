@@ -2,20 +2,32 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Dumbbell } from "lucide-react";
+import { Dumbbell, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
 
 const Login = () => {
   const navigate = useNavigate();
+  const { signIn } = useAuth();
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Mock login - in real app, this would connect to backend
-    toast.success("Login successful!");
+    setLoading(true);
+
+    const { error } = await signIn(formData.email, formData.password);
+
+    if (error) {
+      toast.error(error);
+      setLoading(false);
+      return;
+    }
+
+    toast.success("Welcome back! Redirecting to dashboard...");
     navigate("/dashboard");
   };
 
@@ -26,7 +38,7 @@ const Login = () => {
           <div className="flex items-center justify-center mb-8">
             <Dumbbell className="h-12 w-12 text-primary" />
           </div>
-          
+
           <h1 className="text-3xl font-bold text-center mb-2">Welcome Back</h1>
           <p className="text-center text-muted-foreground mb-8">
             Sign in to continue your fitness journey
@@ -44,6 +56,7 @@ const Login = () => {
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 required
                 placeholder="your.email@example.com"
+                disabled={loading}
               />
             </div>
 
@@ -58,11 +71,19 @@ const Login = () => {
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 required
                 placeholder="••••••••"
+                disabled={loading}
               />
             </div>
 
-            <Button type="submit" variant="hero" className="w-full">
-              Sign In
+            <Button type="submit" variant="hero" className="w-full" disabled={loading}>
+              {loading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Signing in...
+                </>
+              ) : (
+                "Sign In"
+              )}
             </Button>
           </form>
 

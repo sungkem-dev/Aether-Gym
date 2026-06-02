@@ -2,11 +2,14 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Dumbbell } from "lucide-react";
+import { Dumbbell, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
 
 const Register = () => {
   const navigate = useNavigate();
+  const { signUp } = useAuth();
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -14,17 +17,35 @@ const Register = () => {
     confirmPassword: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (formData.password !== formData.confirmPassword) {
       toast.error("Passwords don't match!");
       return;
     }
 
-    // Mock registration - in real app, this would connect to backend
-    toast.success("Account created successfully!");
-    navigate("/dashboard");
+    if (formData.password.length < 6) {
+      toast.error("Password must be at least 6 characters.");
+      return;
+    }
+
+    setLoading(true);
+
+    const { error } = await signUp(formData.email, formData.password, formData.name);
+
+    if (error) {
+      toast.error(error);
+      setLoading(false);
+      return;
+    }
+
+    // ✅ After registration: send user to Pricing to choose a membership plan.
+    // The Dashboard is protected by MemberRoute — they can't access it until
+    // they complete payment. They can also choose to continue as a Guest from
+    // the Pricing page by going back to the home page.
+    toast.success("Account created! Now choose a membership plan to unlock the dashboard.");
+    navigate("/pricing");
   };
 
   return (
@@ -34,8 +55,8 @@ const Register = () => {
           <div className="flex items-center justify-center mb-8">
             <Dumbbell className="h-12 w-12 text-primary" />
           </div>
-          
-          <h1 className="text-3xl font-bold text-center mb-2">Join FitLife</h1>
+
+          <h1 className="text-3xl font-bold text-center mb-2">Join AetherGym</h1>
           <p className="text-center text-muted-foreground mb-8">
             Start your transformation today
           </p>
@@ -51,6 +72,7 @@ const Register = () => {
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 required
                 placeholder="John Doe"
+                disabled={loading}
               />
             </div>
 
@@ -65,6 +87,7 @@ const Register = () => {
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 required
                 placeholder="your.email@example.com"
+                disabled={loading}
               />
             </div>
 
@@ -78,7 +101,8 @@ const Register = () => {
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 required
-                placeholder="••••••••"
+                placeholder="Min 6 characters"
+                disabled={loading}
               />
             </div>
 
@@ -93,11 +117,19 @@ const Register = () => {
                 onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                 required
                 placeholder="••••••••"
+                disabled={loading}
               />
             </div>
 
-            <Button type="submit" variant="hero" className="w-full">
-              Create Account
+            <Button type="submit" variant="hero" className="w-full" disabled={loading}>
+              {loading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Creating account...
+                </>
+              ) : (
+                "Create Account"
+              )}
             </Button>
           </form>
 
