@@ -14,6 +14,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { useAuth } from "@/hooks/useAuth";
+import { apiFetch } from "@/lib/api";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -66,7 +67,7 @@ const Statistics = () => {
     setError(null);
 
     try {
-      const response = await fetch(`/api/diet/analytics?period=${period}`, {
+      const response = await apiFetch(`/api/diet/analytics?period=${period}`, {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
 
