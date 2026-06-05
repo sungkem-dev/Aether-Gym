@@ -11,6 +11,7 @@ import {
   MemberRoute,
   GuestRoute,
 } from "@/components/ProtectedRoute";
+import { AdminRoute } from "@/components/AdminRoute";
 
 // ── Pages ────────────────────────────────────────────────────────────────────
 import Index        from "./pages/Index";
@@ -21,6 +22,8 @@ import Payment      from "./pages/Payment";
 import Dashboard    from "./pages/Dashboard";
 import LogFoodManual from "./pages/LogFoodManual";
 import Statistics   from "./pages/Statistics";
+import { ProfileSettings } from "./pages/ProfileSettings";
+import { AdminDashboard } from "./pages/AdminDashboard";
 import NotFound     from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -72,6 +75,16 @@ const App = () => (
             <Route
               path="/statistics"
               element={<MemberRoute><Statistics /></MemberRoute>}
+            />
+            <Route
+              path="/profile"
+              element={<ProtectedRoute><ProfileSettings /></ProtectedRoute>}
+            />
+
+            {/* ── Admin route ─────────────────────────────────────────────── */}
+            <Route 
+              path="/admin" 
+              element={<AdminRoute><AdminDashboard /></AdminRoute>} 
             />
 
             {/* ── Catch-all 404 ─────────────────────────────────────────── */}

@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { apiFetch } from "@/lib/api";
+import imageCompression from "browser-image-compression";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -88,22 +89,48 @@ export const UploadMealDialog = ({ open, onOpenChange, onSuccess }: UploadMealDi
 
   // ── File handling ───────────────────────────────────────────────────────────
 
-  const handleFileSelected = (file: File) => {
+  const handleFileSelected = async (file: File) => {
     if (!file.type.startsWith("image/")) {
       toast.error("Please select an image file (JPEG, PNG, WebP).");
       return;
     }
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error("Image must be under 10MB.");
+    
+    // We can allow slightly larger files now since we compress, but let's keep a reasonable limit (e.g. 20MB)
+    if (file.size > 20 * 1024 * 1024) {
+      toast.error("Image must be under 20MB.");
       return;
     }
-    setSelectedFile(file);
+
     setScanResult(null);
     setCorrectedName("");
 
-    const reader = new FileReader();
-    reader.onloadend = () => setPreview(reader.result as string);
-    reader.readAsDataURL(file);
+    try {
+      // Compress the image to prevent mobile browser memory crashes
+      toast.info("Preparing image...", { id: "compressing-toast" });
+      const options = {
+        maxSizeMB: 1,          // Compress to max 1MB
+        maxWidthOrHeight: 1024, // Resize to max 1024px width/height
+        useWebWorker: true,     // Use web worker for better performance
+      };
+      
+      const compressedFile = await imageCompression(file, options);
+      toast.dismiss("compressing-toast");
+      
+      setSelectedFile(compressedFile);
+
+      // Read for preview
+      const reader = new FileReader();
+      reader.onloadend = () => setPreview(reader.result as string);
+      reader.onerror = () => {
+        toast.error("Failed to read image preview.");
+      };
+      reader.readAsDataURL(compressedFile);
+    } catch (error) {
+      toast.dismiss("compressing-toast");
+      console.error("Error compressing image:", error);
+      toast.error("Failed to process the image. Please try a different photo.");
+      clearImage();
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {

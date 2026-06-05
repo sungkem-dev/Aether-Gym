@@ -19,6 +19,8 @@ import { errorHandler } from './middleware/errorHandler.js';
 import foodRoutes    from './routes/food.routes.js';
 import dietRoutes    from './routes/diet.routes.js';
 import paymentRoutes from './routes/payment.routes.js';
+import adminRoutes   from './routes/admin.routes.js';
+import userRoutes    from './routes/user.routes.js';
 
 // ── App initialization ────────────────────────────────────────────────────────
 const app = express();
@@ -100,6 +102,8 @@ app.get('/health', (_req, res) => {
 app.use('/api/food',    foodRoutes);
 app.use('/api/diet',    dietRoutes);
 app.use('/api/payment', paymentRoutes);
+app.use('/api/admin',   adminRoutes);
+app.use('/api/user',    userRoutes);
 
 // ─── 404 Handler ──────────────────────────────────────────────────────────────
 app.use((req, res) => {

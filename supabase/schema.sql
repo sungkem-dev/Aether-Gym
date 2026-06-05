@@ -27,6 +27,15 @@ CREATE TABLE IF NOT EXISTS public.users (
   name            TEXT,
   role            TEXT NOT NULL DEFAULT 'guest' CHECK (role IN ('guest', 'member', 'admin')),
   target_calories INTEGER DEFAULT 2000,
+  height          NUMERIC(5,2),
+  weight          NUMERIC(5,2),
+  age             INTEGER,
+  gender          TEXT CHECK (gender IN ('male', 'female')),
+  activity_level  TEXT CHECK (activity_level IN ('sedentary', 'light', 'moderate', 'active', 'very_active')),
+  daily_calories  INTEGER,
+  daily_protein   INTEGER,
+  daily_carbs     INTEGER,
+  daily_fat       INTEGER,
   created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -209,6 +218,23 @@ CREATE TRIGGER update_diet_plans_updated_at
 
 
 -- =============================================================================
+-- TABLE 8: complaints
+-- User feedback/complaints for Admin review.
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS public.complaints (
+  id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id     UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+  subject     TEXT NOT NULL,
+  message     TEXT NOT NULL,
+  status      TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open', 'resolved')),
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_complaints_user_id ON public.complaints(user_id);
+
+
+
+-- =============================================================================
 -- ROW LEVEL SECURITY (RLS) POLICIES
 -- =============================================================================
 
@@ -220,6 +246,7 @@ ALTER TABLE public.master_foods     ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.food_logs        ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ai_scan_results  ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.diet_plans       ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.complaints       ENABLE ROW LEVEL SECURITY;
 
 
 -- ----- public.users -----
@@ -334,6 +361,20 @@ CREATE POLICY "diet_plans_update_own" ON public.diet_plans
 
 CREATE POLICY "diet_plans_delete_own" ON public.diet_plans
   FOR DELETE USING (auth.uid() = user_id);
+
+
+-- ----- public.complaints -----
+
+CREATE POLICY "complaints_select_own" ON public.complaints
+  FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "complaints_insert_own" ON public.complaints
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "complaints_admin_all" ON public.complaints
+  FOR ALL USING (
+    EXISTS (SELECT 1 FROM public.users u WHERE u.id = auth.uid() AND u.role = 'admin')
+  );
 
 
 -- =============================================================================

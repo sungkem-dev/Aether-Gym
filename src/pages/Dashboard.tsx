@@ -20,6 +20,9 @@ interface TodayStats {
   fat: number;
   mealsLogged: number;
   targetCalories: number;
+  targetProtein: number;
+  targetCarbs: number;
+  targetFat: number;
 }
 
 // ─── Derive macro targets from calories (30/40/30 split) ──────────────────────
@@ -62,8 +65,12 @@ const Dashboard = () => {
     fat: 0,
     mealsLogged: 0,
     targetCalories: 2000,
+    targetProtein: Math.round((2000 * 0.3) / 4),
+    targetCarbs: Math.round((2000 * 0.4) / 4),
+    targetFat: Math.round((2000 * 0.3) / 9),
   });
   const [loadingStats, setLoadingStats] = useState(true);
+  const [recommendedFoods, setRecommendedFoods] = useState<any[]>([]);
 
   // ── Notification deduplication ──────────────────────────────────────────────
   // Tracks which toast types have already fired this session.
@@ -77,17 +84,21 @@ const Dashboard = () => {
 
     setLoadingStats(true);
     try {
-      const [analyticsRes, statusRes] = await Promise.all([
+      const [analyticsRes, profileRes, masterFoodsRes] = await Promise.all([
         apiFetch("/api/diet/analytics?period=daily", {
           headers: { Authorization: `Bearer ${accessToken}` },
         }),
-        apiFetch("/api/payment/status", {
+        apiFetch("/api/user/profile", {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        }),
+        apiFetch("/api/diet/master-foods?limit=50", {
           headers: { Authorization: `Bearer ${accessToken}` },
         }),
       ]);
 
       const analyticsData = await analyticsRes.json();
-      const statusData = await statusRes.json();
+      const profileData = await profileRes.json();
+      const masterFoodsData = await masterFoodsRes.json();
 
       let newStats = { ...stats };
 
@@ -103,11 +114,32 @@ const Dashboard = () => {
         };
       }
 
-      if (statusRes.ok && statusData.data) {
-        newStats.targetCalories = statusData.data.target_calories ?? 2000;
+      if (profileRes.ok && profileData.data) {
+        const p = profileData.data;
+        newStats.targetCalories = p.daily_calories ?? p.target_calories ?? 2000;
+        newStats.targetProtein = p.daily_protein ?? Math.round((newStats.targetCalories * 0.3) / 4);
+        newStats.targetCarbs = p.daily_carbs ?? Math.round((newStats.targetCalories * 0.4) / 4);
+        newStats.targetFat = p.daily_fat ?? Math.round((newStats.targetCalories * 0.3) / 9);
       }
 
       setStats(newStats);
+
+      // Calculate recommendations if we have master foods
+      if (masterFoodsRes.ok && masterFoodsData.data) {
+        const remainingProtein = Math.max(0, newStats.targetProtein - newStats.protein);
+        const remainingCarbs = Math.max(0, newStats.targetCarbs - newStats.carbs);
+        const remainingFat = Math.max(0, newStats.targetFat - newStats.fat);
+
+        // Sort foods by how well they fit remaining macros (simple distance metric)
+        const foods = masterFoodsData.data;
+        foods.sort((a: any, b: any) => {
+          const scoreA = Math.abs(a.protein - remainingProtein) + Math.abs(a.carbs - remainingCarbs) + Math.abs(a.fat - remainingFat);
+          const scoreB = Math.abs(b.protein - remainingProtein) + Math.abs(b.carbs - remainingCarbs) + Math.abs(b.fat - remainingFat);
+          return scoreA - scoreB;
+        });
+
+        setRecommendedFoods(foods.slice(0, 3));
+      }
 
       // ── Fire nutrition alert toasts ──────────────────────────────────────
       if (newStats.mealsLogged > 0) {
@@ -146,7 +178,11 @@ const Dashboard = () => {
   };
 
   // ── Derived values ─────────────────────────────────────────────────────────
-  const macroTargets = deriveMacroTargets(stats.targetCalories);
+  const macroTargets = {
+    protein: stats.targetProtein,
+    carbs: stats.targetCarbs,
+    fat: stats.targetFat,
+  };
   const caloriePct = stats.targetCalories > 0
     ? Math.round((stats.calories / stats.targetCalories) * 100)
     : 0;
@@ -409,6 +445,55 @@ const Dashboard = () => {
               <span>View Statistics</span>
             </Button>
           </div>
+        </Card>
+
+        {/* Diet Recommendations */}
+        <Card className="p-6 mb-8 animate-slide-up">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold flex items-center gap-2">
+              <Target className="h-6 w-6 text-primary" />
+              Diet Plan & Recommendations
+            </h2>
+            <Button variant="outline" onClick={() => navigate("/profile")}>
+              Update TDEE Metrics
+            </Button>
+          </div>
+          
+          <div className="bg-muted p-4 rounded-lg mb-6 text-sm flex justify-between items-center">
+            <div>
+              <span className="font-semibold block mb-1">Your Customized Plan</span>
+              <span className="text-muted-foreground block">
+                {stats.targetCalories} kcal / day
+              </span>
+            </div>
+            <div className="text-right">
+              <span className="font-semibold block mb-1">Current Progress</span>
+              <span className="text-muted-foreground block">
+                {stats.targetCalories > stats.calories ? `${stats.targetCalories - stats.calories} kcal remaining` : `${stats.calories - stats.targetCalories} kcal over target`}
+              </span>
+            </div>
+          </div>
+
+          {recommendedFoods.length > 0 && (
+            <div>
+              <h3 className="font-semibold mb-3">Recommended Foods for Your Remaining Macros</h3>
+              <div className="grid md:grid-cols-3 gap-4">
+                {recommendedFoods.map((food) => (
+                  <Card key={food.id} className="p-4 flex flex-col justify-between">
+                    <div>
+                      <h4 className="font-bold mb-1">{food.name}</h4>
+                      <p className="text-sm text-muted-foreground mb-2">{food.calories} kcal per {food.serving_size || "serving"}</p>
+                    </div>
+                    <div className="flex gap-2 text-xs">
+                      <span className="bg-blue-500/10 text-blue-500 px-2 py-1 rounded">P: {food.protein}g</span>
+                      <span className="bg-yellow-500/10 text-yellow-500 px-2 py-1 rounded">C: {food.carbs}g</span>
+                      <span className="bg-orange-500/10 text-orange-500 px-2 py-1 rounded">F: {food.fat}g</span>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          )}
         </Card>
       </div>
 
