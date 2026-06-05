@@ -24,6 +24,7 @@ import LogFoodManual from "./pages/LogFoodManual";
 import Statistics   from "./pages/Statistics";
 import { ProfileSettings } from "./pages/ProfileSettings";
 import { AdminDashboard } from "./pages/AdminDashboard";
+import { AdminLogin } from "./pages/AdminLogin";
 import NotFound     from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -83,7 +84,11 @@ const App = () => (
 
             {/* ── Admin route ─────────────────────────────────────────────── */}
             <Route 
-              path="/admin" 
+              path="/admin-login" 
+              element={<AdminLogin />} 
+            />
+            <Route 
+              path="/admin-dashboard" 
               element={<AdminRoute><AdminDashboard /></AdminRoute>} 
             />
 
